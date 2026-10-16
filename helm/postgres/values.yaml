@@ -14,4 +14,4 @@ auth:
 persistence:
   enabled: true
   size: 1Gi
-  storageClass: ""
+  storageClass: gp2
