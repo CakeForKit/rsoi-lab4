@@ -14,4 +14,13 @@ auth:
 persistence:
   enabled: true
   size: 1Gi
-  storageClass: gp2
+  storageClass: auto-ebs-sc
+
+storageClass:
+  create: true
+  name: auto-ebs-sc
+  provisioner: ebs.csi.eks.amazonaws.com
+  volumeBindingMode: WaitForFirstConsumer
+  parameters:
+    type: gp3
+    encrypted: "true"
