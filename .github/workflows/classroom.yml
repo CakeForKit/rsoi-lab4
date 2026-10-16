@@ -29,7 +29,7 @@ jobs:
 
       - name: Build images
         timeout-minutes: 10
-        run: make build
+        run: docker compose build
 
       - name: Run containers
         timeout-minutes: 5
@@ -56,7 +56,7 @@ jobs:
 
       - name: Publish images
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
-        run: make push
+        run: docker compose push ms-flight ms-ticket ms-bonus ms-gateway
         env:
           DOCKER_REGISTRY: ${{ env.DOCKERHUB_USERNAME }}
           IMAGE_TAG: ${{ github.sha }}
@@ -73,7 +73,20 @@ jobs:
 
       - name: Deploy to Kubernetes
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' && env.KUBECONFIG_B64 != ''
-        run: make deploy
+        run: |
+          helm upgrade --install postgres helm/postgres \
+            --namespace "$NAMESPACE" --create-namespace --wait --timeout 3m
+
+          for values in helm/microservice/values-ms-*.yaml; do
+            release=${values##*/values-}
+            release=${release%.yaml}
+
+            helm upgrade --install "$release" helm/microservice \
+              --namespace "$NAMESPACE" --wait --timeout 3m \
+              -f "$values" \
+              --set image.repository="$DOCKER_REGISTRY/rsoi-lab4-$release" \
+              --set image.tag="$IMAGE_TAG"
+          done
         env:
           NAMESPACE: rsoi
           DOCKER_REGISTRY: ${{ env.DOCKERHUB_USERNAME }}
