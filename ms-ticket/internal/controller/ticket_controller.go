@@ -33,7 +33,15 @@ func (c *ticketController) RegisterHttpController(router *gin.Engine) {
 	router.GET("/internal/tickets", c.list)
 	router.GET("/internal/tickets/:ticketUid", c.get)
 	router.POST("/internal/tickets", c.create)
+	router.DELETE("/internal/tickets/:ticketUid", c.delete)
 	router.PUT("/internal/tickets/:ticketUid/cancel", c.cancel)
+}
+func (c *ticketController) delete(ctx *gin.Context) {
+	if err := c.service.Delete(ctx, username(ctx), ctx.Param("ticketUid")); err != nil {
+		utils.AbortContextWithError(ctx, err)
+		return
+	}
+	ctx.Status(http.StatusNoContent)
 }
 func username(ctx *gin.Context) string { return ctx.GetHeader("X-User-Name") }
 func (c *ticketController) list(ctx *gin.Context) {

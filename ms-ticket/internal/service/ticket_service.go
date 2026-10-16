@@ -15,9 +15,20 @@ var ticketSrvMutex sync.Mutex
 
 type TicketService interface {
 	Create(ctx context.Context, username string, request model.TicketCreateRequest) (model.Ticket, error)
+	Delete(ctx context.Context, username string, uid string) error
 	GetAll(ctx context.Context, username string) ([]model.Ticket, error)
 	Get(ctx context.Context, username string, uid string) (model.Ticket, error)
 	Cancel(ctx context.Context, username string, uid string) (model.Ticket, error)
+}
+
+// Delete is used by the gateway to compensate a ticket creation when the
+// subsequent bonus operation cannot be completed.
+func (service *ticketService) Delete(ctx context.Context, username string, uid string) error {
+	ticket, err := service.Get(ctx, username, uid)
+	if err != nil {
+		return err
+	}
+	return service.repository.DeleteById(ctx, []uint{ticket.ID})
 }
 
 type ticketService struct {

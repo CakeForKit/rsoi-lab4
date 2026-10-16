@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
@@ -25,15 +26,12 @@ type gatewayController struct {
 
 func GetGatewayController() (coreConroller.HttpController, error) {
 	gatewayCntrlrMutex.Lock()
-	defer gatewayCntrlrMutex.Unlock()
+	gatewayCntrlrMutex.Unlock()
 
 	if gatewayCntrlr != nil {
 		return gatewayCntrlr, nil
 	}
-	gatewayCntrlr = &gatewayController{
-		proxy:   proxy.NewGatewayProxy(),
-		service: service.New(),
-	}
+	gatewayCntrlr = &gatewayController{proxy: proxy.NewGatewayProxy(), service: service.New()}
 	return gatewayCntrlr, nil
 }
 
@@ -50,15 +48,20 @@ func (controller gatewayController) RegisterHttpController(router *gin.Engine) {
 }
 
 func username(ctx *gin.Context) (string, bool) {
-	value := ctx.GetHeader("X-User-Name")
-	if value == "" {
+	user := ctx.GetHeader("X-User-Name")
+	if user == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "X-User-Name is required"})
 		return "", false
 	}
-	return value, true
+	return user, true
 }
 
 func failure(ctx *gin.Context, err error) {
+	var unavailable *service.UnavailableError
+	if errors.As(err, &unavailable) {
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{"message": unavailable.Error()})
+		return
+	}
 	ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 }
 
@@ -136,7 +139,7 @@ func (controller gatewayController) cancel(ctx *gin.Context) {
 		return
 	}
 	if err := controller.service.Cancel(user, ctx.Param("ticketUid")); err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		failure(ctx, err)
 		return
 	}
 	ctx.Status(http.StatusNoContent)

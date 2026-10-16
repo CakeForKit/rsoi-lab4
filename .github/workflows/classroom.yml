@@ -39,13 +39,12 @@ jobs:
         env:
           WAIT_PORTS: 8080,8070,8060,8050
 
-      - name: Run API Tests
-        uses: matt-ball/newman-action@master
-        with:
-          collection: v1/postman/collection.json
-          environment: v1/postman/environment.json
-          delayRequest: 100
-          reporters: '[ "cli" ]'
+      - name: Install Newman
+        run: npm install --global newman
+
+      - name: Run API and failover tests
+        timeout-minutes: 5
+        run: ./scripts/test-compose.sh v1 ms-bonus 8050
 
       - name: Log in to Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/master' && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
