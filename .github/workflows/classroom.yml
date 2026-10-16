@@ -30,6 +30,9 @@ jobs:
       - name: Build images
         timeout-minutes: 10
         run: docker compose build
+        env:
+          DOCKER_REGISTRY: ${{ env.DOCKERHUB_USERNAME }}
+          IMAGE_TAG: ${{ github.sha }}
 
       - name: Run containers
         timeout-minutes: 5
@@ -38,6 +41,8 @@ jobs:
           ./scripts/wait-script.sh
         env:
           WAIT_PORTS: 8080,8070,8060,8050
+          DOCKER_REGISTRY: ${{ env.DOCKERHUB_USERNAME }}
+          IMAGE_TAG: ${{ github.sha }}
 
       - name: Install Newman
         run: npm install --global newman
