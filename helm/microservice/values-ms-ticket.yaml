@@ -1,0 +1,6 @@
+fullnameOverride: ms-ticket
+service:
+  port: 8070
+env:
+  - name: DATABASE_URL
+    value: postgres://program:test@postgres:5432/tickets?sslmode=disable

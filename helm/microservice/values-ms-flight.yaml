@@ -1,0 +1,6 @@
+fullnameOverride: ms-flight
+service:
+  port: 8060
+env:
+  - name: DATABASE_URL
+    value: postgres://program:test@postgres:5432/flights?sslmode=disable

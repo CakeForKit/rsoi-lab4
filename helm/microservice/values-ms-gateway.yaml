@@ -1,0 +1,9 @@
+fullnameOverride: ms-gateway
+service:
+  port: 8080
+ingress:
+  enabled: true
+  className: nginx
+  host: rsoi.local
+  path: /
+  pathType: Prefix

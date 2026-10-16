@@ -1,0 +1,6 @@
+fullnameOverride: ms-bonus
+service:
+  port: 8050
+env:
+  - name: DATABASE_URL
+    value: postgres://program:test@postgres:5432/privileges?sslmode=disable

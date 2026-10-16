@@ -1,0 +1,17 @@
+fullnameOverride: postgres
+
+image:
+  repository: postgres
+  tag: "13"
+  pullPolicy: IfNotPresent
+
+auth:
+  postgresUser: postgres
+  postgresPassword: postgres
+  appUser: program
+  appPassword: test
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""

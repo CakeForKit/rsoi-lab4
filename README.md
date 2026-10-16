@@ -58,6 +58,41 @@ Kubernetes Cluster, т.е. готовый кластер k8s, предостав
 2. После того как все тесты успешно завершатся, в Github Classroom на Dashboard будет отмечено успешное выполнение
    тестов.
 
+## Реализация
+
+Исходный код сервисов и `lb-core` перенесён из Lab 2. Каждый сервис собирается в отдельный Docker-образ; локально
+они запускаются через `docker-compose.yml`.
+
+Kubernetes-манифесты находятся в `helm/`:
+
+* `helm/microservice` — универсальный Helm chart для `ms-flight`, `ms-ticket`, `ms-bonus` и `ms-gateway`;
+* `helm/microservice/values-ms-*.yaml` — только параметры конкретного сервиса: имя, порт, образ и строка подключения;
+* `helm/postgres` — один экземпляр PostgreSQL с базами `flights`, `tickets` и `privileges`.
+
+Все внутренние сервисы публикуются как `ClusterIP`. Единственный внешний маршрут описан в Ingress `ms-gateway`.
+Перед развёртыванием укажите реальный домен ingress в
+`helm/microservice/values-ms-gateway.yaml` вместо `rsoi.local` и настройте DNS-запись у провайдера кластера.
+
+### Локальная проверка
+
+```shell
+make test
+DOCKER_REGISTRY=<docker-hub-user> IMAGE_TAG=latest make build
+```
+
+### Публикация и деплой
+
+Создайте managed Kubernetes cluster и установите в нём Ingress Controller. Затем войдите в Docker Hub и выполните:
+
+```shell
+docker login
+DOCKER_REGISTRY=<docker-hub-user> IMAGE_TAG=<tag> make push
+DOCKER_REGISTRY=<docker-hub-user> IMAGE_TAG=<tag> NAMESPACE=rsoi make deploy
+```
+
+Для GitHub Actions нужны secrets `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` и `KUBECONFIG_B64` (base64-кодированный
+kubeconfig). На push в `master` workflow запускает тесты, публикует четыре образа и обновляет Helm releases.
+
 ### Варианты заданий
 
 Распределение вариантов заданий аналогично [ЛР #2](https://github.com/bmstu-rsoi/lab2-template).
