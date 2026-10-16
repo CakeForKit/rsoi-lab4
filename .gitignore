@@ -1239,3 +1239,6 @@ buildNumber.properties
 !Makefile
 !**/go.mod
 !**/go.sum
+!scripts/
+!scripts/wait-for.sh
+!scripts/wait-script.sh
